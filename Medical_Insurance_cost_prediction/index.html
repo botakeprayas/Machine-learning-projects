@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insurance Cost Predictor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+        }
+
+        .slider-container {
+            margin-top: 8px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+        }
+
+        .value-display {
+            text-align: right;
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .result .amount {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #764ba2;
+            margin: 10px 0;
+        }
+
+        .result .note {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        .model-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .model-info h3 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .model-info p {
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Insurance Cost Predictor</h1>
+        <p class="subtitle">Get an instant estimate of your medical insurance costs</p>
+
+        <div class="model-info">
+            <h3>📊 Model Performance</h3>
+            <p>R² Score: 0.889 | Trained on 1,338 insurance records</p>
+        </div>
+
+        <form id="predictionForm">
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="range" id="age" name="age" min="18" max="64" value="30" oninput="updateValue('age')">
+                <div class="value-display" id="age-value">30 years</div>
+            </div>
+
+            <div class="form-group">
+                <label for="sex">Sex</label>
+                <select id="sex" name="sex">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="bmi">BMI (Body Mass Index)</label>
+                <input type="range" id="bmi" name="bmi" min="15" max="50" step="0.1" value="25" oninput="updateValue('bmi')">
+                <div class="value-display" id="bmi-value">25.0</div>
+            </div>
+
+            <div class="form-group">
+                <label for="children">Number of Children</label>
+                <input type="range" id="children" name="children" min="0" max="5" value="0" oninput="updateValue('children')">
+                <div class="value-display" id="children-value">0 children</div>
+            </div>
+
+            <div class="form-group">
+                <label for="smoker">Smoker</label>
+                <select id="smoker" name="smoker">
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="region">Region</label>
+                <select id="region" name="region">
+                    <option value="southwest">Southwest</option>
+                    <option value="southeast">Southeast</option>
+                    <option value="northwest">Northwest</option>
+                    <option value="northeast">Northeast</option>
+                </select>
+            </div>
+
+            <button type="submit">Calculate Insurance Cost</button>
+        </form>
+
+        <div class="result" id="result">
+            <h2>Estimated Annual Insurance Cost</h2>
+            <div class="amount" id="prediction"></div>
+            <div class="note">This is an estimate based on machine learning predictions</div>
+        </div>
+    </div>
+
+    <script>
+        // Model coefficients (extracted from the linear regression model)
+        // These would come from your trained model
+        const modelCoefficients = {
+            intercept: -11938.54,
+            age: 256.86,
+            sex_male: -131.31,
+            bmi: 339.19,
+            children: 475.50,
+            smoker_yes: 23848.53,
+            region_northwest: -352.96,
+            region_southeast: -1035.02,
+            region_southwest: -960.05
+        };
+
+        function updateValue(id) {
+            const element = document.getElementById(id);
+            const valueDisplay = document.getElementById(id + '-value');
+            
+            if (id === 'age') {
+                valueDisplay.textContent = element.value + ' years';
+            } else if (id === 'bmi') {
+                valueDisplay.textContent = parseFloat(element.value).toFixed(1);
+            } else if (id === 'children') {
+                valueDisplay.textContent = element.value + ' ' + (element.value === '1' ? 'child' : 'children');
+            }
+        }
+
+        document.getElementById('predictionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form values
+            const age = parseFloat(document.getElementById('age').value);
+            const sex = document.getElementById('sex').value;
+            const bmi = parseFloat(document.getElementById('bmi').value);
+            const children = parseInt(document.getElementById('children').value);
+            const smoker = document.getElementById('smoker').value;
+            const region = document.getElementById('region').value;
+
+            // Calculate prediction using linear regression formula
+            let prediction = modelCoefficients.intercept;
+            prediction += age * modelCoefficients.age;
+            prediction += sex === 'male' ? modelCoefficients.sex_male : 0;
+            prediction += bmi * modelCoefficients.bmi;
+            prediction += children * modelCoefficients.children;
+            prediction += smoker === 'yes' ? modelCoefficients.smoker_yes : 0;
+            
+            if (region === 'northwest') prediction += modelCoefficients.region_northwest;
+            else if (region === 'southeast') prediction += modelCoefficients.region_southeast;
+            else if (region === 'southwest') prediction += modelCoefficients.region_southwest;
+
+            // Display result
+            const resultDiv = document.getElementById('result');
+            const predictionDiv = document.getElementById('prediction');
+            
+            predictionDiv.textContent = '$' + Math.round(prediction).toLocaleString();
+            resultDiv.classList.add('show');
+            
+            // Smooth scroll to result
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+
+        // Initialize value displays
+        updateValue('age');
+        updateValue('bmi');
+        updateValue('children');
+    </script>
+</body>
+</html>
